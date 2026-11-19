@@ -31,9 +31,7 @@ def main() -> None:
         level=logging.INFO,
         handlers=[
             logging.StreamHandler(),
-            logging.FileHandler(
-                log_folder / "py-assettocorsa-recorder.log", encoding="utf-8"
-            ),
+            logging.FileHandler(log_folder / "py-assettocorsa-recorder.log", encoding="utf-8"),
         ],
     )
     logger.info("Waiting for an Assetto Corsa session. Press Ctrl+C to stop.")

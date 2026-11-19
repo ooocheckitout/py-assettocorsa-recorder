@@ -12,13 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class Session:
-    def __init__(self) -> None:
-        output_folder = Path(
-            r"C:\Users\feelsgood\Documents\py-assettocorsa-recorder\Recordings"
-        )
+    def __init__(self, track: str, car: str) -> None:
+        output_folder = Path(r"C:\Users\feelsgood\Documents\py-assettocorsa-recorder\Recordings")
         output_folder.mkdir(parents=True, exist_ok=True)
         timestamp = format(datetime.now(tz=timezone.utc), "%Y%m%d%H%M%S%f")
-        output_path = output_folder / (f"{timestamp}.jsonl")
+        output_path = output_folder / f"{track}_{car}_{timestamp}.jsonl"
         self._output = output_path.open("w", encoding="utf-8")
         logger.info("Start recording to '%s'", self._output.name)
 

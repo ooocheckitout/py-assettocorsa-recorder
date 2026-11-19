@@ -13,9 +13,7 @@ logger = logging.getLogger(__name__)
 
 def serialize_page(value: object) -> object:
     if isinstance(value, ctypes.Structure):
-        return {
-            name: serialize_page(getattr(value, name)) for name, *_ in value._fields_
-        }
+        return {name: serialize_page(getattr(value, name)) for name, *_ in value._fields_}
     if isinstance(value, ctypes.Array):
         return [serialize_page(item) for item in value]
     if isinstance(value, bytes):
@@ -23,14 +21,12 @@ def serialize_page(value: object) -> object:
     return value
 
 
-def capture_driving(
-    memory: ACSharedMemory, graphics: GraphicsPage, *, retry_capture_in_sec: float
-) -> None:
+def capture_driving(memory: ACSharedMemory, graphics: GraphicsPage, *, retry_capture_in_sec: float) -> None:
     session_type = AC_SESSION_TYPE(graphics.session).name
+    static = memory.read_static()
     logger.info("Capturing '%s' session.", session_type)
 
-    with Session() as session:
-        static = memory.read_static()
+    with Session(static.track, static.car_model) as session:
         session.append(serialize_page(static))
 
         while True:

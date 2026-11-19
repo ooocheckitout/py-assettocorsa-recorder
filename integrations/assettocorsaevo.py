@@ -13,9 +13,7 @@ logger = logging.getLogger(__name__)
 
 def serialize_page(value: object) -> object:
     if isinstance(value, ctypes.Structure):
-        return {
-            name: serialize_page(getattr(value, name)) for name, *_ in value._fields_
-        }
+        return {name: serialize_page(getattr(value, name)) for name, *_ in value._fields_}
     if isinstance(value, ctypes.Array):
         return [serialize_page(item) for item in value]
     if isinstance(value, bytes):
@@ -23,12 +21,13 @@ def serialize_page(value: object) -> object:
     return value
 
 
-def capture_driving(
-    memory: ACEvoSharedMemory, static: StaticPage, *, retry_capture_in_sec: float
-) -> None:
-    logger.info("Capturing '%s' session.", static.session_name)
+def capture_driving(memory: ACEvoSharedMemory, static: StaticPage, *, retry_capture_in_sec: float) -> None:
+    logger.info("Capturing '%s' session.", static.session_name.decode("utf-8"))
 
-    with Session() as session:
+    graphics = memory.read_graphics()
+    track = static.track.decode("utf-8")
+    car = graphics.car_model.decode("utf-8")
+    with Session(track, car) as session:
         session.append(serialize_page(static))
 
         while True:
@@ -36,7 +35,7 @@ def capture_driving(
             snapshot = memory.read_snapshot()
 
             if snapshot.static.session == ACEVO_SESSION_TYPE.AC_UNKNOWN:
-                logger.info("Session '%s' has ended.", snapshot.static.session_name)
+                logger.info("Session '%s' has ended.", static.session_name.decode("utf-8"))
                 return
 
             if snapshot.graphics.status != ACEVO_STATUS.AC_LIVE:
@@ -58,6 +57,6 @@ def connect_and_capture() -> None:
 
         logger.info("Connected to Assetto Corsa.")
 
-        capture_driving(memory, graphics, retry_capture_in_sec=1 / 30)
+        capture_driving(memory, static, retry_capture_in_sec=1 / 30)
 
     logger.info("Disconnected from Assetto Corsa.")
