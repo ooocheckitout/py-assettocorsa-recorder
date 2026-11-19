@@ -1,6 +1,7 @@
 import ctypes
 import logging
 from time import sleep
+from typing import Any
 
 from acevo import ACEvoSharedMemory
 from acevo.models.static import StaticPage
@@ -11,7 +12,7 @@ from session import Session
 logger = logging.getLogger(__name__)
 
 
-def serialize_page(value: object) -> object:
+def serialize_page(value: object) -> Any:
     if isinstance(value, ctypes.Structure):
         return {name: serialize_page(getattr(value, name)) for name, *_ in value._fields_}
     if isinstance(value, ctypes.Array):
@@ -22,20 +23,20 @@ def serialize_page(value: object) -> object:
 
 
 def capture_driving(memory: ACEvoSharedMemory, static: StaticPage, *, retry_capture_in_sec: float) -> None:
-    logger.info("Capturing '%s' session.", static.session_name.decode("utf-8"))
+    static_page = serialize_page(static)
+    graphics_page = serialize_page(memory.read_graphics())
+    session_name = static_page["session_name"]
+    logger.info("Capturing '%s' session.", session_name)
 
-    graphics = memory.read_graphics()
-    track = static.track.decode("utf-8")
-    car = graphics.car_model.decode("utf-8")
-    with Session(track, car) as session:
-        session.append(serialize_page(static))
+    with Session(static_page["track"], graphics_page["car_model"]) as session:
+        session.append(static_page)
 
         while True:
             sleep(retry_capture_in_sec)
             snapshot = memory.read_snapshot()
 
             if snapshot.static.session == ACEVO_SESSION_TYPE.AC_UNKNOWN:
-                logger.info("Session '%s' has ended.", static.session_name.decode("utf-8"))
+                logger.info("Session '%s' has ended.", session_name)
                 return
 
             if snapshot.graphics.status != ACEVO_STATUS.AC_LIVE:
