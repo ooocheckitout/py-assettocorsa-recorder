@@ -1,3 +1,4 @@
 py-assettocorsa
 py-assettocorsa-evo
+py-assettocorsa-rally
 pyinstaller

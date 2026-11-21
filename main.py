@@ -2,7 +2,7 @@ import logging
 from time import sleep
 from pathlib import Path
 
-from integrations import assettocorsa, assettocorsaevo
+from integrations import assettocorsa, assettocorsaevo, assettocorsarally
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +13,7 @@ def monitor_games(*, retry_connect_in_sec: int) -> None:
         for game in (
             assettocorsa,
             assettocorsaevo,
+            assettocorsarally,
         ):
             try:
                 game.connect_and_capture()
