@@ -1,4 +1,3 @@
-import ctypes
 import logging
 from time import sleep
 
@@ -6,19 +5,10 @@ from ac import ACSharedMemory
 from ac.models.graphics import GraphicsPage
 from ac.models.enums import AC_SESSION_TYPE, AC_STATUS
 
+from lib import serialize_page
 from session import Session
 
 logger = logging.getLogger(__name__)
-
-
-def serialize_page(value: object) -> object:
-    if isinstance(value, ctypes.Structure):
-        return {name: serialize_page(getattr(value, name)) for name, *_ in value._fields_}
-    if isinstance(value, ctypes.Array):
-        return [serialize_page(item) for item in value]
-    if isinstance(value, bytes):
-        return value.decode("utf-8")
-    return value
 
 
 def capture_driving(memory: ACSharedMemory, graphics: GraphicsPage, *, retry_capture_in_sec: float) -> None:
